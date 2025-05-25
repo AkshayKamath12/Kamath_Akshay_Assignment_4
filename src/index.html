@@ -20,18 +20,35 @@
   </head>
 
   <body onload="main()" style="display: flex;">
-    <div style="width: 700;">
+    <div style="width: screen;">
         <div style="display: flex; width: 100%; justify-content: space-between;">
-          <h1>Blocky World</h1>
+          <h1>Lighting Assignment</h1>
           <h2 id="fps">FPS</h2>
           <button id="perspective">camera perspective</button>
         </div>
-        <canvas id="webgl" width="700" height="700">
+        <canvas id="webgl" width="400" height="400">
           Please use a browser that supports "canvas"
         </canvas>
         <div>
           <button id="normal-on">Normal On</button>
           <button id="normal-off">Normal Off</button>
+        </div>
+        <div>
+          <div>
+            <label for="light-x">Light X Position</label>
+            <input type="range" id = "light-x" min="0" max="3000" value="1000" class="slider">
+          </div>
+          <div>
+            <label for="light-y">Light Y Position</label>
+            <input type="range" id = "light-y" min="0" max="3000" value="100" class="slider">
+          </div>
+          <div>
+            <label for="light-z">Light Z Position</label>
+            <input type="range" id = "light-z" min="0" max="3000" value="500" class="slider">
+          </div>
+          <div>
+            <button id="light-animate">Toggle Light Animation</button>
+          </div>
         </div>
     </div>
     

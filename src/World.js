@@ -7,6 +7,7 @@ var VSHADER_SOURCE =`
   attribute vec3 a_Normal;
   varying vec2 v_UV;
   varying vec3 v_Normal;
+  varying vec4 v_VertPos;
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_GlobalRotateMatrix;
   uniform mat4 u_ViewMatrix;
@@ -15,6 +16,7 @@ var VSHADER_SOURCE =`
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
     v_UV = a_UV;
     v_Normal = a_Normal;
+    v_VertPos = u_ModelMatrix * a_Position;
   }`
 
 // Fragment shader program
@@ -28,6 +30,8 @@ var FSHADER_SOURCE = `
   uniform sampler2D u_Sampler2;
   uniform sampler2D u_Sampler3;
   uniform int u_whichTexture;
+  uniform vec3 u_lightPos;
+  varying vec4 v_VertPos;
   void main() {
     
     if (u_whichTexture == -3) {
@@ -47,6 +51,16 @@ var FSHADER_SOURCE = `
     } else {
       gl_FragColor = vec4(1, .2, .2, 1);
     }
+
+    vec3 lightVector = vec3(v_VertPos) - u_lightPos;
+    float r = length(lightVector);
+    //if( r < 1.0) {
+    //  gl_FragColor = vec4(1, 0, 0, 1);
+    //}else if (r < 2.0) {
+    //  gl_FragColor = vec4(0.5, 1, 0, 1);
+    //}
+    gl_FragColor = vec4(vec3(gl_FragColor) * (1.0 / (r * r)), 1);
+
 
   }`
 
@@ -68,8 +82,9 @@ let u_Sampler1;
 let u_Sampler2;
 let u_Sampler3;
 let u_whichTexture;
+let u_lightPos;
 
-
+let g_lightAnimate = false;
 let g_globalAngle = 80;
 let g_allLegsAngle = 0.0;
 let g_frontLegFootAngle = 0.0;
@@ -84,6 +99,11 @@ let gemsAnimateStartTime = 0;
 let gemsAnimateTime = 0;
 let isDragging = false;
 let lastX = 0, lastY = 0;
+let lightX = 0.0;
+let lightY = 0.0;
+let lightZ = 0.0;
+const baseLightPos = [10, 1, 5];
+let g_lightPos = [10, 1, 5];
 
 let gemsColor1 = [0.0, 1.0, 0.0, 1.0];
 let gemsColor2 = [0.0, 0.0, 1.0, 1.0];
@@ -101,6 +121,25 @@ function addActionsForHtmlUI(){
 
   document.getElementById("normal-off").addEventListener("click", function(){
     g_normalOn = false;
+  });
+
+  document.getElementById("light-x").addEventListener("mousemove", function(){
+    g_lightPos[0] = this.value / 100.0;
+    renderScene();
+  });
+
+  document.getElementById("light-y").addEventListener("mousemove", function(){
+    g_lightPos[1] = this.value / 100.0;
+    renderScene();
+  });
+
+  document.getElementById("light-z").addEventListener("mousemove", function(){
+    g_lightPos[2] = this.value / 100.0;
+    renderScene();
+  });
+
+  document.getElementById("light-animate").addEventListener("click", function(){
+    g_lightAnimate = !g_lightAnimate;
   });
 
   canvas.addEventListener('mousedown', (e) => {
@@ -270,7 +309,11 @@ function connectVariablesToGLSL(){
     return;
   }
 
-
+  u_lightPos = gl.getUniformLocation(gl.program, 'u_lightPos');
+  if (!u_lightPos) {
+    console.log('Failed to get the storage location of u_lightPos');
+    return;
+  }
   
   u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
   if (!u_ViewMatrix) {
@@ -401,8 +444,18 @@ function tick(){
   }
   
   updateAnimationInfo();
+  updateLightAnimation();
   renderScene();
   requestAnimationFrame(tick);
+}
+
+function updateLightAnimation(){
+  const radius = 3;
+  if(g_lightAnimate){
+    g_lightPos[0] = radius * Math.cos(g_seconds) + baseLightPos[0];
+    g_lightPos[2] = radius * Math.sin(g_seconds) + baseLightPos[2];
+  }
+
 }
 
 function updateAnimationInfo(){
@@ -1162,6 +1215,8 @@ function renderScene(){
   projMat.setPerspective(50, canvas.width / canvas.height, 1, 100);
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
+   
+
   var viewMat = new Matrix4();
   viewMat.setLookAt(
     camera.eye.elements[0], camera.eye.elements[1], camera.eye.elements[2],
@@ -1179,8 +1234,17 @@ function renderScene(){
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clear(gl.COLOR_BUFFER_BIT);
+  
+  gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+  var light = new Cube();
+  light.color = [2.0, 2.0, 0.0, 1.0]; 
+  light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]); 
+  light.matrix.scale(0.5, 0.5, 0.5); 
+  light.flipNormals();
+  light.textureNum = -2;
+  light.renderFast();
 
-  // Add a green floor
+  
   var floor = new Cube();
   floor.color = [0.0, 1.0, 0.0, 1.0]; // Green color
   floor.matrix.translate(-2.0, -0.5, -2.0); // Position the floor below the animal
@@ -1203,7 +1267,7 @@ function renderScene(){
   sphere.color = [0.0, 1.0, 1.0, 1.0]; 
   sphere.matrix.translate(10, 3, 7); 
   sphere.matrix.scale(1, 1, 1);
-  sphere.textureNum = 0;
+  sphere.textureNum = -2;
   if(g_normalOn){
     sphere.textureNum = -3;
   }
