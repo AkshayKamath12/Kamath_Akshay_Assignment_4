@@ -52,16 +52,22 @@ var FSHADER_SOURCE = `
       gl_FragColor = vec4(1, .2, .2, 1);
     }
 
-    vec3 lightVector = vec3(v_VertPos) - u_lightPos;
+    vec3 lightVector = u_lightPos - vec3(v_VertPos);
     float r = length(lightVector);
     //if( r < 1.0) {
     //  gl_FragColor = vec4(1, 0, 0, 1);
     //}else if (r < 2.0) {
     //  gl_FragColor = vec4(0.5, 1, 0, 1);
     //}
-    gl_FragColor = vec4(vec3(gl_FragColor) * (1.0 / (r * r)), 1);
+   
+   
+    //gl_FragColor = vec4(vec3(gl_FragColor) * (1.0 / (r * r)), 1);
 
-
+    vec3 L = normalize(lightVector);
+    vec3 N = normalize(v_Normal);
+    float nDotL = max(dot(N, L), 0.0);
+    gl_FragColor = gl_FragColor * nDotL;
+    gl_FragColor.a = 1.0;
   }`
 
 
@@ -450,7 +456,7 @@ function tick(){
 }
 
 function updateLightAnimation(){
-  const radius = 3;
+  const radius = 5;
   if(g_lightAnimate){
     g_lightPos[0] = radius * Math.cos(g_seconds) + baseLightPos[0];
     g_lightPos[2] = radius * Math.sin(g_seconds) + baseLightPos[2];
