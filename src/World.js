@@ -4,7 +4,9 @@ var VSHADER_SOURCE =`
   precision mediump float;
   attribute vec4 a_Position;
   attribute vec2 a_UV;
+  attribute vec3 a_Normal;
   varying vec2 v_UV;
+  varying vec3 v_Normal;
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_GlobalRotateMatrix;
   uniform mat4 u_ViewMatrix;
@@ -12,12 +14,14 @@ var VSHADER_SOURCE =`
   void main() {
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
     v_UV = a_UV;
+    v_Normal = a_Normal;
   }`
 
 // Fragment shader program
 var FSHADER_SOURCE = `
   precision mediump float;
   varying vec2 v_UV;
+  varying vec3 v_Normal;
   uniform vec4 u_FragColor; 
   uniform sampler2D u_Sampler0;
   uniform sampler2D u_Sampler1;
@@ -26,7 +30,9 @@ var FSHADER_SOURCE = `
   uniform int u_whichTexture;
   void main() {
     
-    if (u_whichTexture == -2) {
+    if (u_whichTexture == -3) {
+      gl_FragColor = vec4((v_Normal + 1.0) / 2.0, 1.0);
+    } else if (u_whichTexture == -2) {
     gl_FragColor = u_FragColor;
     } else if (u_whichTexture == -1) {
      gl_FragColor = vec4(v_UV, 1.0, 1.0);
@@ -49,6 +55,8 @@ let canvas;
 let gl;
 let a_Position;
 let a_UV;
+let a_Normal;
+let g_normalOn = false;
 let u_FragColor;
 let u_Size;
 let u_ModelMatrix;
@@ -86,6 +94,15 @@ function addActionsForHtmlUI(){
     camera.eye.elements = [4.36159610748291, 5.091113090515137, -2.926283121109009];
     camera.at.elements = [11.161596298217773, 0.33325591683387756, -11.952878952026367];
   });
+
+  document.getElementById("normal-on").addEventListener("click", function(){
+    g_normalOn = true;
+  });
+
+  document.getElementById("normal-off").addEventListener("click", function(){
+    g_normalOn = false;
+  });
+
   canvas.addEventListener('mousedown', (e) => {
   if (e.shiftKey) {
     gemsAnimate = true;
@@ -229,6 +246,12 @@ function connectVariablesToGLSL(){
     return;
   }
 
+  a_Normal = gl.getAttribLocation(gl.program, 'a_Normal');
+  if (a_Normal < 0) {
+    console.log('Failed to get the storage location of a_Normal');
+    return; 
+  }
+
   // Get the storage location of u_FragColor
   u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
   if (!u_FragColor) {
@@ -291,8 +314,11 @@ function connectVariablesToGLSL(){
     return; 
   }
 
+
   var identityM = new Matrix4();
   gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
+
+
 
 }
 
@@ -1163,8 +1189,11 @@ function renderScene(){
   floor.renderFast();
 
   var sky = new Cube();
-  sky.color = [0.0, 0.0, 1.0, 1.0]; // Blue color
+  sky.color = [0.0, 0.0, 0.0, 1.0]; // Blue color
   sky.textureNum = 0;
+  if(g_normalOn){
+    sky.textureNum = -3;
+  }
   sky.matrix.translate(-2.0, -1, -2.0); // Position the sky above the animal
   sky.matrix.scale(50.0, 50.0, 50.0); // Scale to make it wide and flat
   sky.renderFast();

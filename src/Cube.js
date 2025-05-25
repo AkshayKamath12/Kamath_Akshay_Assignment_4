@@ -51,6 +51,32 @@ class Cube {
         0, 0, 1, 1, 1, 0,
         0, 0, 1, 0, 1, 1,
         ]);
+
+        this.allnormals = new Float32Array([
+        // Front face (0, 0, -1)
+        0, 0, -1, 0, 0, -1, 0, 0, -1,
+        0, 0, -1, 0, 0, -1, 0, 0, -1,
+
+        // Top face (0, 1, 0)
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+
+        // Back face (0, 0, 1)
+        0, 0, 1, 0, 0, 1, 0, 0, 1,
+        0, 0, 1, 0, 0, 1, 0, 0, 1,
+
+        // Bottom face (0, -1, 0)
+        0, -1, 0, 0, -1, 0, 0, -1, 0,
+        0, -1, 0, 0, -1, 0, 0, -1, 0,
+
+        // Left face (-1, 0, 0)
+        -1, 0, 0, -1, 0, 0, -1, 0, 0,
+        -1, 0, 0, -1, 0, 0, -1, 0, 0,
+
+        // Right face (1, 0, 0)
+        1, 0, 0, 1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0, 1, 0, 0,
+        ]);
     }
 
     render() {
@@ -61,28 +87,28 @@ class Cube {
         gl.uniform1i(u_whichTexture, this.textureNum);
 
         // Front of cube
-        drawTriangle3DUV(new Float32Array([0, 0, 0, 1, 1, 0, 1, 0, 0]), new Float32Array([0, 0, 1, 1, 1, 0]));
-        drawTriangle3DUV(new Float32Array([0, 0, 0, 0, 1, 0, 1, 1, 0]), new Float32Array([0, 0, 0, 1, 1, 1]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 1, 1, 0, 1, 0, 0]), new Float32Array([0, 0, 1, 1, 1, 0]), new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 0, 1, 0, 1, 1, 0]), new Float32Array([0, 0, 0, 1, 1, 1]), new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1]));
 
         // Top of cube
-        drawTriangle3DUV(new Float32Array([0, 1, 0, 0, 1, 1, 1, 1, 1]), new Float32Array([0, 0, 0, 1, 1, 1]));
-        drawTriangle3DUV(new Float32Array([0, 1, 0, 1, 1, 1, 1, 1, 0]), new Float32Array([0, 0, 1, 1, 1, 0]));
+        drawTriangle3DUVNormal(new Float32Array([0, 1, 0, 0, 1, 1, 1, 1, 1]), new Float32Array([0, 0, 0, 1, 1, 1]), new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0]));
+        drawTriangle3DUVNormal(new Float32Array([0, 1, 0, 1, 1, 1, 1, 1, 0]), new Float32Array([0, 0, 1, 1, 1, 0]), new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0]));
 
         // Back of cube
-        drawTriangle3DUV(new Float32Array([0, 0, 1, 1, 0, 1, 1, 1, 1]), new Float32Array([0, 0, 1, 0, 1, 1]));
-        drawTriangle3DUV(new Float32Array([0, 0, 1, 1, 1, 1, 0, 1, 1]), new Float32Array([0, 0, 1, 1, 0, 1]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 1, 1, 0, 1, 1, 1, 1]), new Float32Array([0, 0, 1, 0, 1, 1]), new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 1, 1, 1, 1, 0, 1, 1]), new Float32Array([0, 0, 1, 1, 0, 1]), new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0]));
 
         // Bottom of cube
-        drawTriangle3DUV(new Float32Array([0, 0, 0, 1, 0, 0, 1, 0, 1]), new Float32Array([0, 0, 1, 0, 1, 1]));
-        drawTriangle3DUV([0, 0, 0, 1, 0, 1, 0, 0, 1], new Float32Array([0, 0, 1, 1, 0, 1]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 1, 0, 0, 1, 0, 1]), new Float32Array([0, 0, 1, 0, 1, 1]), new Float32Array([-1, 0, 0, -1, 0, 0, -1, 0, 0]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 1, 0, 1, 0, 0, 1]), new Float32Array([0, 0, 1, 1, 0, 1]), new Float32Array([-1, 0, 0, -1, 0, 0, -1, 0, 0]));
 
         // Left of cube
-        drawTriangle3DUV(new Float32Array([0, 0, 0, 0, 1, 1, 0, 1, 0]), new Float32Array([0, 0, 1, 1, 0, 1]));
-        drawTriangle3DUV(new Float32Array([0, 0, 0, 0, 0, 1, 0, 1, 1]), new Float32Array([0, 0, 0, 1, 1, 1]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 0, 1, 1, 0, 1, 0]), new Float32Array([0, 0, 1, 1, 0, 1]), new Float32Array([0, -1, 0, 0, -1, 0, 0,-1, 0]));
+        drawTriangle3DUVNormal(new Float32Array([0, 0, 0, 0, 0, 1, 0, 1, 1]), new Float32Array([0, 0, 0, 1, 1, 1]), new Float32Array([0, -1, 0, 0, -1, 0, 0,-1, 0]));
 
         // Right of cube
-        drawTriangle3DUV(new Float32Array([1, 0, 0, 1, 1, 0, 1, 1, 1]), new Float32Array([0, 0, 1, 1, 1, 0]));
-        drawTriangle3DUV(new Float32Array([1, 0, 0, 1, 1, 1, 1, 0, 1]), new Float32Array([0, 0, 1, 0, 1, 1]));
+        drawTriangle3DUVNormal(new Float32Array([1, 0, 0, 1, 1, 0, 1, 1, 1]), new Float32Array([0, 0, 1, 1, 1, 0]), new Float32Array([0, -1, 0, 0, -1, 0, 0, -1, 0]));
+        drawTriangle3DUVNormal(new Float32Array([1, 0, 0, 1, 1, 1, 1, 0, 1]), new Float32Array([0, 0, 1, 0, 1, 1]), new Float32Array([0, -1, 0, 0, -1, 0, 0, -1, 0]));
     }
 
     renderFast(){
@@ -92,7 +118,7 @@ class Cube {
 
         gl.uniform1i(u_whichTexture, this.textureNum);
 
-        drawTriangle3DUV(this.allverts, this.alluv);
+        drawTriangle3DUVNormal(this.allverts, this.alluv, this.allnormals);
         
     }
 
