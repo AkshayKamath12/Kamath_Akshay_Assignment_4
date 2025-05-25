@@ -1193,10 +1193,21 @@ function renderScene(){
   sky.textureNum = 0;
   if(g_normalOn){
     sky.textureNum = -3;
+    sky.flipNormals();
   }
   sky.matrix.translate(-2.0, -1, -2.0); // Position the sky above the animal
   sky.matrix.scale(50.0, 50.0, 50.0); // Scale to make it wide and flat
   sky.renderFast();
+
+  var sphere = new Sphere();
+  sphere.color = [0.0, 1.0, 1.0, 1.0]; 
+  sphere.matrix.translate(10, 3, 7); 
+  sphere.matrix.scale(1, 1, 1);
+  sphere.textureNum = 0;
+  if(g_normalOn){
+    sphere.textureNum = -3;
+  }
+  sphere.render();
   
   // Draw the map
   drawMap();
@@ -1216,5 +1227,6 @@ function renderScene(){
   drawTree(17, -0.75, 27);
 
   drawMinecraftFence(4, -0.75, 19);
+  
 
 }

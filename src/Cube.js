@@ -77,6 +77,13 @@ class Cube {
         1, 0, 0, 1, 0, 0, 1, 0, 0,
         1, 0, 0, 1, 0, 0, 1, 0, 0,
         ]);
+        
+    }
+
+    flipNormals() {
+        for (let i = 0; i < this.allnormals.length; ++i) {
+            this.allnormals[i] = -Math.abs(this.allnormals[i]);
+        }
     }
 
     render() {
