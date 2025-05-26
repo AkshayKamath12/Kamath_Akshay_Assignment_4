@@ -35,6 +35,7 @@ var FSHADER_SOURCE = `
   varying vec4 v_VertPos;
   uniform bool u_lightOn;
   uniform bool u_spotLightOn;
+  uniform vec3 u_lightColor;
 
   uniform vec3 u_spotlightPos;
   uniform vec3 u_spotlightDir;
@@ -62,11 +63,7 @@ var FSHADER_SOURCE = `
 
     vec3 lightVector = u_lightPos - vec3(v_VertPos);
     float r = length(lightVector);
-    //if( r < 1.0) {
-    //  gl_FragColor = vec4(1, 0, 0, 1);
-    //}else if (r < 2.0) {
-    //  gl_FragColor = vec4(0.5, 1, 0, 1);
-    //}
+
    
    
     //gl_FragColor = vec4(vec3(gl_FragColor) * (1.0 / (r * r)), 1);
@@ -94,7 +91,7 @@ var FSHADER_SOURCE = `
 
     float specular = pow(max(dot(R, E), 0.0), 10.0);
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL;
+    vec3 diffuse = u_lightColor * vec3(gl_FragColor) * nDotL;
     vec3 ambient = vec3(gl_FragColor) * 0.3; 
 
     if (u_lightOn) {
@@ -140,6 +137,7 @@ let u_spotLightOn;
 let u_spotlightPos;
 let u_spotlightDir;
 let u_spotlightCutoff;
+let u_lightColor;
 
 let g_spotLightOn = false;
 let g_lightOn = true;
@@ -167,6 +165,7 @@ let g_lightPos = [10, 1, 5];
 let gemsColor1 = [0.0, 1.0, 0.0, 1.0];
 let gemsColor2 = [0.0, 0.0, 1.0, 1.0];
 let gemsColor3 = [1.0, 0.0, 0.0, 1.0];
+let magentaIntensity = 0.5;
 
 function addActionsForHtmlUI(){
   document.getElementById("perspective").addEventListener("click", function(){
@@ -215,6 +214,11 @@ function addActionsForHtmlUI(){
 
   document.getElementById("spotlight-off").addEventListener("click", function(){
     g_spotLightOn = false;
+  });
+
+  document.getElementById("magenta-slider").addEventListener("mousemove", function(){
+    magentaIntensity = this.value;
+    renderScene();
   });
 
   canvas.addEventListener('mousedown', (e) => {
@@ -393,6 +397,12 @@ function connectVariablesToGLSL(){
   u_lightOn = gl.getUniformLocation(gl.program, 'u_lightOn');
   if (!u_lightOn) {
     console.log('Failed to get the storage location of u_lightOn');
+    return;
+  }
+
+  u_lightColor = gl.getUniformLocation(gl.program, 'u_lightColor');
+  if (!u_lightColor) {
+    console.log('Failed to get the storage location of u_lightColor');
     return;
   }
 
@@ -601,6 +611,7 @@ function drawMap(){
         cube.color = [0.3, 0.1, 0.1, 1.0];
         cube.matrix.translate(i, -0.5, j);
         //cube.matrix.scale(0.5, 0.5, 0.5);
+        cube.textureNum = g_normalOn ? -3 : -2;
         cube.renderFast();
       } else if (map[i][j] > 0) {
         cube = new Cube();
@@ -608,7 +619,7 @@ function drawMap(){
         cube.matrix.translate(i, -0.5, j);
        
         //cube.matrix.scale(0.5, 0.5, 0.5);
-        cube.textureNum = 1;
+        cube.textureNum = g_normalOn ? -3 : 1;
         cube.renderFast();
       }
     }
@@ -620,12 +631,14 @@ function drawTree(x, y, z){
   trunk.color = [0.3, 0.1, 0.1, 1.0];
   trunk.matrix.translate(x, y, z);
   trunk.matrix.scale(0.5, 1.5, 0.5);
+  trunk.textureNum = g_normalOn ? -3 : -2;
   trunk.renderFast();
 
   var leaves = new Cube();
   leaves.color = [0.1, 0.8, 0.1, 1.0];
   leaves.matrix.translate(x-0.25, y + 1.5, z-0.25);
   leaves.matrix.scale(1, 1, 1);
+  leaves.textureNum = g_normalOn ? -3 : -2;
   leaves.renderFast();
 
 }
@@ -645,105 +658,105 @@ function drawLayer(x, y, z, height){
   cube.color = [0.3, 0.1, 0.1, 1.0];
   cube.matrix.translate(x, y+height, z);
   cube.matrix.scale(0.5, 0.5, 0.5);
-  cube.textureNum = 1;
+  cube.textureNum = g_normalOn ? -3 : 1;
   cube.renderFast();
 
   var cube2 = new Cube();
   cube2.color = [0.3, 0.1, 0.1, 1.0];
   cube2.matrix.translate(x, y+height, z + 1);
   cube2.matrix.scale(0.5, 0.5, 0.5);
-  cube2.textureNum = 1;
+  cube2.textureNum = g_normalOn ? -3 : 1;
   cube2.renderFast();
 
   var cube3 = new Cube();
   cube3.color = [0.3, 0.1, 0.1, 1.0];
   cube3.matrix.translate(x + 0.5, y+height, z);
   cube3.matrix.scale(0.5, 0.5, 0.5);
-  cube3.textureNum = 1;
+  cube3.textureNum = g_normalOn ? -3 : 1;
   cube3.renderFast();
 
   var cube4 = new Cube();
   cube4.color = [0.3, 0.1, 0.1, 1.0];
   cube4.matrix.translate(x + 1, y+height, z);
   cube4.matrix.scale(0.5, 0.5, 0.5);
-  cube4.textureNum = 1;
+  cube4.textureNum = g_normalOn ? -3 : 1;
   cube4.renderFast();
 
   var cube5 = new Cube();
   cube5.color = [0.3, 0.1, 0.1, 1.0];
   cube5.matrix.translate(x + 1.5, y+height, z);
   cube5.matrix.scale(0.5, 0.5, 0.5);
-  cube5.textureNum = 1;
+  cube5.textureNum = g_normalOn ? -3 : 1;
   cube5.renderFast();
 
   var cube6 = new Cube();
   cube6.color = [0.3, 0.1, 0.1, 1.0];
   cube6.matrix.translate(x + 2, y+height, z);
   cube6.matrix.scale(0.5, 0.5, 0.5);
-  cube6.textureNum = 1;
+  cube6.textureNum = g_normalOn ? -3 : 1;
   cube6.renderFast();
 
   var cube7 = new Cube();
   cube7.color = [0.3, 0.1, 0.1, 1.0];
   cube7.matrix.translate(x + 2, y+height, z+0.5);
   cube7.matrix.scale(0.5, 0.5, 0.5);
-  cube7.textureNum = 1;
+  cube7.textureNum = g_normalOn ? -3 : 1;
   cube7.renderFast();
 
   var cube8 = new Cube();
   cube8.color = [0.3, 0.1, 0.1, 1.0];
   cube8.matrix.translate(x + 2, y+height, z+1);
   cube8.matrix.scale(0.5, 0.5, 0.5);
-  cube8.textureNum = 1;
+  cube8.textureNum = g_normalOn ? -3 : 1;
   cube8.renderFast();
 
   var cube9 = new Cube();
   cube9.color = [0.3, 0.1, 0.1, 1.0];
   cube9.matrix.translate(x + 2, y+height, z+1.5);
   cube9.matrix.scale(0.5, 0.5, 0.5);
-  cube9.textureNum = 1;
+  cube9.textureNum = g_normalOn ? -3 : 1;
   cube9.renderFast();
 
   var cube10 = new Cube();
   cube10.color = [0.3, 0.1, 0.1, 1.0];
   cube10.matrix.translate(x + 2, y+height, z+2);
   cube10.matrix.scale(0.5, 0.5, 0.5);
-  cube10.textureNum = 1;
+  cube10.textureNum = g_normalOn ? -3 : 1;
   cube10.renderFast();
 
   var cube11 = new Cube();
   cube11.color = [0.3, 0.1, 0.1, 1.0];
   cube11.matrix.translate(x + 1.5, y+height, z+2);
   cube11.matrix.scale(0.5, 0.5, 0.5);
-  cube11.textureNum = 1;
+  cube11.textureNum = g_normalOn ? -3 : 1;
   cube11.renderFast();
 
   var cube12 = new Cube();
   cube12.color = [0.3, 0.1, 0.1, 1.0];
   cube12.matrix.translate(x + 1, y+height, z+2);
   cube12.matrix.scale(0.5, 0.5, 0.5);
-  cube12.textureNum = 1;
+  cube12.textureNum = g_normalOn ? -3 : 1;
   cube12.renderFast();
 
   var cube13 = new Cube();
   cube13.color = [0.3, 0.1, 0.1, 1.0];
   cube13.matrix.translate(x + 0.5, y+height, z+2);
   cube13.matrix.scale(0.5, 0.5, 0.5);
-  cube13.textureNum = 1;
+  cube13.textureNum = g_normalOn ? -3 : 1;
   cube13.renderFast();
 
   var cube14 = new Cube();
   cube14.color = [0.3, 0.1, 0.1, 1.0];
   cube14.matrix.translate(x, y+height, z+2);
   cube14.matrix.scale(0.5, 0.5, 0.5);
-  cube14.textureNum = 1;
+  cube14.textureNum = g_normalOn ? -3 : 1;
   cube14.renderFast();
 
   var cube15 = new Cube();
   cube15.color = [0.3, 0.1, 0.1, 1.0];
   cube15.matrix.translate(x, y+height, z+1.5);
   cube15.matrix.scale(0.5, 0.5, 0.5);
-  cube15.textureNum = 1;
+  cube15.textureNum = g_normalOn ? -3 : 1;
   cube15.renderFast();
 }
 
@@ -754,7 +767,7 @@ function drawRoof(x, y, z, height){
       cube.color = [0.3, 0.1, 0.1, 1.0];
       cube.matrix.translate(x + i*0.5, y+height, z + j*0.5);
       cube.matrix.scale(0.5, 0.5, 0.5);
-      cube.textureNum = 1;
+      cube.textureNum = g_normalOn ? -3 : 1;
       cube.renderFast();
     }
   }
@@ -765,7 +778,7 @@ function drawRoof(x, y, z, height){
       cube.color = [0.3, 0.1, 0.1, 1.0];
       cube.matrix.translate(x + i*0.5, y+height + 0.5, z + j*0.5);
       cube.matrix.scale(0.5, 0.5, 0.5);
-      cube.textureNum = 1;
+      cube.textureNum = g_normalOn ? -3 : 1;
       cube.renderFast();
     }
   }
@@ -774,7 +787,7 @@ function drawRoof(x, y, z, height){
   cube.color = [0.3, 0.1, 0.1, 1.0];
   cube.matrix.translate(x + 0.75, y+height + 1, z + 1);
   cube.matrix.scale(0.5, 0.5, 0.5);
-  cube.textureNum = 1;
+  cube.textureNum = g_normalOn ? -3 : 1;
   cube.renderFast();
 }
 
@@ -795,6 +808,7 @@ function drawPig(x, y, z, theta=-80){
   var pupilMatrix2 = new Matrix4(head.matrix);
   var crownMatrix = new Matrix4(head.matrix);
   head.matrix.scale(0.5, 0.5, 0.5);
+  head.textureNum = g_normalOn ? -3 : -2;
   head.renderFast();
 
   var nose = new Cube();
@@ -804,6 +818,7 @@ function drawPig(x, y, z, theta=-80){
   var nostrilMatrix = new Matrix4(nose.matrix);
   var nostrilMatrix2 = new Matrix4(nose.matrix);
   nose.matrix.scale(0.2, 0.24, 0.2);
+  nose.textureNum = g_normalOn ? -3 : -2;
   nose.renderFast();
 
   var nostril = new Cube();
@@ -811,6 +826,7 @@ function drawPig(x, y, z, theta=-80){
   nostril.matrix = nostrilMatrix;
   nostril.matrix.translate(0.066, 0.159, -0.015);
   nostril.matrix.scale(0.08, 0.08, 0.05);
+  nostril.textureNum = g_normalOn ? -3 : -2;
   nostril.renderFast();
 
   var nostril2 = new Cube();
@@ -818,6 +834,7 @@ function drawPig(x, y, z, theta=-80){
   nostril2.matrix = nostrilMatrix2;
   nostril2.matrix.translate(0.066, 0.0001, -0.015);
   nostril2.matrix.scale(0.08, 0.08, 0.05);
+  nostril2.textureNum = g_normalOn ? -3 : -2;
   nostril2.renderFast();
 
   var eye = new Cube();
@@ -825,6 +842,7 @@ function drawPig(x, y, z, theta=-80){
   eye.matrix = eyeMatrix;
   eye.matrix.translate(0.1, 0.38, -0.01);
   eye.matrix.scale(0.1, 0.115, 0.1);
+  eye.textureNum = g_normalOn ? -3 : -2;
   eye.renderFast();
 
   var pupil = new Cube();
@@ -832,6 +850,7 @@ function drawPig(x, y, z, theta=-80){
   pupil.matrix = pupilMatrix;
   pupil.matrix.translate(0.1, 0.44, -0.02);
   pupil.matrix.scale(0.1, 0.0575, 0.1);
+  pupil.textureNum = g_normalOn ? -3 : -2;
   pupil.renderFast();
 
   var eye2 = new Cube();
@@ -839,6 +858,7 @@ function drawPig(x, y, z, theta=-80){
   eye2.matrix = eyeMatrix2;
   eye2.matrix.translate(0.1, 0.001, -0.02);
   eye2.matrix.scale(0.1, 0.115, 0.1);
+  eye2.textureNum = g_normalOn ? -3 : -2;
   eye2.renderFast();
 
   var pupil2 = new Cube();
@@ -846,6 +866,7 @@ function drawPig(x, y, z, theta=-80){
   pupil2.matrix = pupilMatrix2;
   pupil2.matrix.translate(0.1, 0.0001, -0.04);
   pupil2.matrix.scale(0.1, 0.0575, 0.1);
+  pupil2.textureNum = g_normalOn ? -3 : -2;
   pupil2.renderFast();
 
 
@@ -858,6 +879,7 @@ function drawPig(x, y, z, theta=-80){
   var tmpMatrix4 = new Matrix4(head.matrix);
   var tmpMatrix5 = new Matrix4(head.matrix);
   body.matrix.scale(0.5, 0.7, 0.7);
+  body.textureNum = g_normalOn ? -3 : -2;
   body.renderFast();
 
   var crown = new Cube();
@@ -909,6 +931,7 @@ function drawPig(x, y, z, theta=-80){
   crownCorner.matrix = crownCornerMatrix;
   crownCorner.matrix.translate(-0.08, 0, 0);
   crownCorner.matrix.scale(0.1, 0.1, 0.1);
+  crownCorner.textureNum = g_normalOn ? -3 : -2;
   crownCorner.renderFast();
 
   var crownMiddle = new Cube();
@@ -916,6 +939,7 @@ function drawPig(x, y, z, theta=-80){
   crownMiddle.matrix = crownMiddleMatrix;
   crownMiddle.matrix.translate(-0.08, 0.2, 0);
   crownMiddle.matrix.scale(0.1, 0.1, 0.1);
+  crownMiddle.textureNum = g_normalOn ? -3 : -2;
   crownMiddle.renderFast();
 
   var crownCorner2 = new Cube();
@@ -923,6 +947,7 @@ function drawPig(x, y, z, theta=-80){
   crownCorner2.matrix = crownCornerMatrix2;
   crownCorner2.matrix.translate(-0.08, 0.43, 0);
   crownCorner2.matrix.scale(0.1, 0.1, 0.1);
+  crownCorner2.textureNum = g_normalOn ? -3 : -2;
   crownCorner2.renderFast();
 
   var crownMiddle2 = new Cube();
@@ -930,6 +955,7 @@ function drawPig(x, y, z, theta=-80){
   crownMiddle2.matrix = crownMiddleMatrix2;
   crownMiddle2.matrix.translate(-0.08, 0.2, 0.4);
   crownMiddle2.matrix.scale(0.1, 0.1, 0.1);
+  crownMiddle2.textureNum = g_normalOn ? -3 : -2;
   crownMiddle2.renderFast();
 
   var crownCorner3 = new Cube();
@@ -937,6 +963,7 @@ function drawPig(x, y, z, theta=-80){
   crownCorner3.matrix = crownCornerMatrix3;
   crownCorner3.matrix.translate(-0.08, 0.43, 0.4);
   crownCorner3.matrix.scale(0.1, 0.1, 0.1);
+  crownCorner3.textureNum = g_normalOn ? -3 : -2;
   crownCorner3.renderFast();
 
   var crownMiddle3 = new Cube();
@@ -944,6 +971,7 @@ function drawPig(x, y, z, theta=-80){
   crownMiddle3.matrix = crownMiddleMatrix3;
   crownMiddle3.matrix.translate(-0.08, 0.43, 0.2);
   crownMiddle3.matrix.scale(0.1, 0.1, 0.1);
+  crownMiddle3.textureNum = g_normalOn ? -3 : -2;
   crownMiddle3.renderFast();
 
   var crownCorner4 = new Cube();
@@ -951,6 +979,7 @@ function drawPig(x, y, z, theta=-80){
   crownCorner4.matrix = crownCornerMatrix4;
   crownCorner4.matrix.translate(-0.08, 0, 0.4);
   crownCorner4.matrix.scale(0.1, 0.1, 0.1);
+  crownCorner4.textureNum = g_normalOn ? -3 : -2;
   crownCorner4.renderFast();
   
   var crownMiddle4 = new Cube();
@@ -958,6 +987,7 @@ function drawPig(x, y, z, theta=-80){
   crownMiddle4.matrix = crownMiddleMatrix4;
   crownMiddle4.matrix.translate(-0.08, 0, 0.2);
   crownMiddle4.matrix.scale(0.1, 0.1, 0.1);
+  crownMiddle4.textureNum = g_normalOn ? -3 : -2;
   crownMiddle4.renderFast();
 
   var crownCenter = new Cone();
@@ -966,6 +996,7 @@ function drawPig(x, y, z, theta=-80){
   crownCenter.matrix.translate(0, 0.25, 0.25);
   crownCenter.matrix.rotate(270, 0, 1, 0);
   crownCenter.matrix.scale(0.1, 0.1, 0.1);
+  crownCenter.textureNum = g_normalOn ? -3 : -2;
   crownCenter.render();
 
   var frontLeftLeg = new Cube();
@@ -975,6 +1006,7 @@ function drawPig(x, y, z, theta=-80){
   frontLeftLeg.matrix.rotate(g_allLegsAngle, 0, 0, 1);
   var frontFootMatrix = new Matrix4(frontLeftLeg.matrix);
   frontLeftLeg.matrix.scale(0.7, 0.4, 0.3);
+  frontLeftLeg.textureNum = g_normalOn ? -3 : -2;
   frontLeftLeg.renderFast();
 
   var frontFoot = new Cube();
@@ -985,6 +1017,7 @@ function drawPig(x, y, z, theta=-80){
   var frontToeMatrix = new Matrix4(frontFoot.matrix);
   var frontToeMatrix2 = new Matrix4(frontFoot.matrix);
   frontFoot.matrix.scale(0.2, 0.4, 0.3);
+  frontFoot.textureNum = g_normalOn ? -3 : -2;
   frontFoot.renderFast();
 
   var frontToe = new Cube();
@@ -993,6 +1026,7 @@ function drawPig(x, y, z, theta=-80){
   frontToe.matrix.translate(0.099, 0.299, -0.01);
   frontToe.matrix.scale(0.1, 0.1, 0.1);
   frontToe.matrix.rotate(g_frontToeAngle, 0, 1, 0);
+  frontToe.textureNum = g_normalOn ? -3 : -2;
   frontToe.renderFast();
 
   var frontToe2 = new Cube();
@@ -1001,6 +1035,7 @@ function drawPig(x, y, z, theta=-80){
   frontToe2.matrix.translate(0.099, 0.001, -0.01);
   frontToe2.matrix.scale(0.1, 0.1, 0.1);
   frontToe2.matrix.rotate(g_frontToeAngle, 0, 1, 0);
+  frontToe2.textureNum = g_normalOn ? -3 : -2;
   frontToe2.renderFast();
 
   var frontRightLeg = new Cube();
@@ -1011,6 +1046,7 @@ function drawPig(x, y, z, theta=-80){
   var frontToeMatrix3 = new Matrix4(frontRightLeg.matrix);
   var frontToeMatrix4 = new Matrix4(frontRightLeg.matrix);
   frontRightLeg.matrix.scale(0.7, 0.4, 0.3);
+  frontRightLeg.textureNum = g_normalOn ? -3 : -2;
   frontRightLeg.renderFast();
 
   var frontToe3 = new Cube();
@@ -1018,6 +1054,7 @@ function drawPig(x, y, z, theta=-80){
   frontToe3.matrix = frontToeMatrix3;
   frontToe3.matrix.translate(0.599, 0.299, -0.001);
   frontToe3.matrix.scale(0.1, 0.1, 0.1);
+  frontToe3.textureNum = g_normalOn ? -3 : -2;
   frontToe3.renderFast();
 
   var frontToe4 = new Cube();
@@ -1025,6 +1062,7 @@ function drawPig(x, y, z, theta=-80){
   frontToe4.matrix = frontToeMatrix4;
   frontToe4.matrix.translate(0.599, 0.001, -0.01);
   frontToe4.matrix.scale(0.1, 0.1, 0.1);
+  frontToe4.textureNum = g_normalOn ? -3 : -2;
   frontToe4.renderFast();
 
   var backRightLeg = new Cube();
@@ -1035,6 +1073,7 @@ function drawPig(x, y, z, theta=-80){
   var backToeMatrix1 = new Matrix4(backRightLeg.matrix);
   var backToeMatrix2 = new Matrix4(backRightLeg.matrix);
   backRightLeg.matrix.scale(0.7, 0.4, 0.3);
+  backRightLeg.textureNum = g_normalOn ? -3 : -2;
   backRightLeg.renderFast();
 
   var backToe1 = new Cube();
@@ -1042,6 +1081,7 @@ function drawPig(x, y, z, theta=-80){
   backToe1.matrix = backToeMatrix1;
   backToe1.matrix.translate(0.599, 0.299, -0.001);
   backToe1.matrix.scale(0.1, 0.1, 0.1);
+  backToeMatrix1.textureNum = g_normalOn ? -3 : -2;
   backToe1.renderFast();
 
   var backToe2 = new Cube();
@@ -1049,6 +1089,7 @@ function drawPig(x, y, z, theta=-80){
   backToe2.matrix = backToeMatrix2;
   backToe2.matrix.translate(0.599, 0.001, -0.01);
   backToe2.matrix.scale(0.1, 0.1, 0.1);
+  backToeMatrix2.textureNum = g_normalOn ? -3 : -2;
   backToe2.renderFast();
 
   var backLeftLeg = new Cube();
@@ -1059,6 +1100,7 @@ function drawPig(x, y, z, theta=-80){
   var backToeMatrix3 = new Matrix4(backLeftLeg.matrix);
   var backToeMatrix4 = new Matrix4(backLeftLeg.matrix);
   backLeftLeg.matrix.scale(0.7, 0.4, 0.3);
+  backLeftLeg.textureNum = g_normalOn ? -3 : -2;
   backLeftLeg.renderFast();
 
   var backToe3 = new Cube();
@@ -1066,6 +1108,7 @@ function drawPig(x, y, z, theta=-80){
   backToe3.matrix = backToeMatrix3;
   backToe3.matrix.translate(0.599, 0.299, -0.001);
   backToe3.matrix.scale(0.1, 0.1, 0.1);
+  backToe3.textureNum = g_normalOn ? -3 : -2;
   backToe3.renderFast();
 
   var backToe4 = new Cube();
@@ -1073,6 +1116,7 @@ function drawPig(x, y, z, theta=-80){
   backToe4.matrix = backToeMatrix4;
   backToe4.matrix.translate(0.599, 0.001, -0.01);
   backToe4.matrix.scale(0.1, 0.1, 0.1);
+  backToe4.textureNum = g_normalOn ? -3 : -2;
   backToe4.renderFast();
 }
 
@@ -1081,56 +1125,56 @@ function drawMinecraftFence(x, y, z){
   corner1.color = [0.3, 0.21, 0.2, 1.0];
   corner1.matrix.translate(x-0.01, y, z-0.01);
   corner1.matrix.scale(0.6, 1.5, 0.6);
-  corner1.textureNum = 2;
+  corner1.textureNum = g_normalOn ? -3 : 2;
   corner1.renderFast();
 
   var joint1 = new Cube();
   joint1.color = [0.3, 0.21, 0.2, 1.0];
   joint1.matrix.translate(x + 0.5, y+0.75, z);
   joint1.matrix.scale(3.5, 0.25, 0.5);
-  joint1.textureNum = 2;
+  joint1.textureNum = g_normalOn ? -3 : 2;
   joint1.renderFast();
 
   var corner2 = new Cube();
   corner2.color = [0.3, 0.21, 0.2, 1.0];
   corner2.matrix.translate(x + 4.01, y, z+0.01);
   corner2.matrix.scale(0.6, 1.5, 0.6);
-  corner2.textureNum = 2;
+  corner2.textureNum = g_normalOn ? -3: 2;
   corner2.renderFast();
 
   var corner3 = new Cube();
   corner3.color = [0.3, 0.21, 0.2, 1.0];
   corner3.matrix.translate(x+4.01, y, z + 3.01);
   corner3.matrix.scale(0.6, 1.5, 0.6);
-  corner3.textureNum = 2;
+  corner3.textureNum = g_normalOn ? -3 : 2;
   corner3.renderFast();
 
   var joint2 = new Cube();
   joint2.color = [0.3, 0.21, 0.2, 1.0];
   joint2.matrix.translate(x + 0.5, y+0.75, z + 3);
   joint2.matrix.scale(3.5, 0.25, 0.5);
-  joint2.textureNum = 2;
+  joint2.textureNum = g_normalOn ? -3 : 2;
   joint2.renderFast();
 
   var corner4 = new Cube();
   corner4.color = [0.3, 0.21, 0.2, 1.0];
   corner4.matrix.translate(x-0.01, y, z + 3.01);
   corner4.matrix.scale(0.6, 1.5, 0.6);
-  corner4.textureNum = 2;
+  corner4.textureNum = g_normalOn ? -3 : 2;
   corner4.renderFast();
 
   var joint3 = new Cube();
   joint3.color = [0.3, 0.21, 0.2, 1.0];
   joint3.matrix.translate(x, y+0.75, z);
   joint3.matrix.scale(0.5, 0.25, 3.5);
-  joint3.textureNum = 2;
+  joint3.textureNum = g_normalOn ? -3 : 2;
   joint3.renderFast();
 
   var joint4 = new Cube();  
   joint4.color = [0.3, 0.21, 0.2, 1.0];
   joint4.matrix.translate(x + 4, y+0.75, z);
   joint4.matrix.scale(0.5, 0.25, 3.5);
-  joint4.textureNum = 2;
+  joint4.textureNum = g_normalOn ? -3 : 2;
   joint4.renderFast();
 }
 
@@ -1146,6 +1190,7 @@ function drawSteve(x, y, z){
   var rightEyeMatrix = new Matrix4(head.matrix);
   var noseMatrix = new Matrix4(head.matrix);
   head.matrix.scale(0.5, 0.5, 0.5);
+  head.textureNum = g_normalOn ? -3 : -2;
   head.renderFast();
 
   var nose = new Cube();
@@ -1156,6 +1201,7 @@ function drawSteve(x, y, z){
   nose.matrix.translate(-0.01, 0.1, 0.175);
   var beardMatrix = new Matrix4(nose.matrix);
   nose.matrix.scale(0.05, 0.08, 0.15);
+  nose.textureNum = g_normalOn ? -3 : -2;
   nose.renderFast();
 
   var beard = new Cube();
@@ -1166,6 +1212,7 @@ function drawSteve(x, y, z){
   var leftBeardMatrix = new Matrix4(beard.matrix);
   var rightBeardMatrix = new Matrix4(beard.matrix);
   beard.matrix.scale(0.05, 0.08, 0.2);
+  beard.textureNum = g_normalOn ? -3 : -2;
   beard.renderFast();
 
   var leftBeard = new Cube();
@@ -1174,6 +1221,7 @@ function drawSteve(x, y, z){
   leftBeard.matrix = leftBeardMatrix;
   leftBeard.matrix.translate(0, 0, -0.05);
   leftBeard.matrix.scale(0.05, 0.12, 0.05);
+  leftBeard.textureNum = g_normalOn ? -3 : -2;
   leftBeard.renderFast();
 
   var rightBeard = new Cube();
@@ -1182,6 +1230,7 @@ function drawSteve(x, y, z){
   rightBeard.matrix = rightBeardMatrix;
   rightBeard.matrix.translate(0, 0, 0.2);
   rightBeard.matrix.scale(0.05, 0.12, 0.05);
+  rightBeard.textureNum = g_normalOn ? -3 : -2;
   rightBeard.renderFast();
 
   var topHair = new Cube();
@@ -1190,6 +1239,7 @@ function drawSteve(x, y, z){
   topHair.matrix = topHairMatrix;
   topHair.matrix.translate(-0.005, 0.4, -0.005);
   topHair.matrix.scale(0.51, 0.125, 0.51);
+  topHair.textureNum = g_normalOn ? -3 : -2;
   topHair.renderFast();
 
   var backHair = new Cube();
@@ -1198,6 +1248,7 @@ function drawSteve(x, y, z){
   backHair.matrix = backHairMatrix;
   backHair.matrix.translate(0.255, 0.3, -0.005);
   backHair.matrix.scale(0.25, 0.125, 0.51);
+  backHair.textureNum = g_normalOn ? -3 : -2;
   backHair.renderFast();
 
   var leftEye = new Cube();
@@ -1207,6 +1258,7 @@ function drawSteve(x, y, z){
   leftEye.matrix.translate(-0.01, 0.25, 0.06);
   var pupilMatrix = new Matrix4(leftEye.matrix);
   leftEye.matrix.scale(0.1, 0.05, 0.1);
+  leftEye.textureNum = g_normalOn ? -3 : -2;
   leftEye.renderFast();
 
   var rightEye = new Cube();
@@ -1216,6 +1268,7 @@ function drawSteve(x, y, z){
   rightEye.matrix.translate(-0.01, 0.25, 0.34);
   var pupilMatrix2 = new Matrix4(rightEye.matrix);
   rightEye.matrix.scale(0.1, 0.05, 0.1);
+  rightEye.textureNum = g_normalOn ? -3 : -2;
   rightEye.renderFast();
 
   var pupil = new Cube();
@@ -1224,6 +1277,7 @@ function drawSteve(x, y, z){
   pupil.matrix = pupilMatrix;
   pupil.matrix.translate(-0.01, -0.001, 0.051);
   pupil.matrix.scale(0.034, 0.055, 0.05);
+  pupil.textureNum = g_normalOn ? -3 : -2;
   pupil.renderFast();
 
   var pupil2 = new Cube();
@@ -1232,26 +1286,27 @@ function drawSteve(x, y, z){
   pupil2.matrix = pupilMatrix2;
   pupil2.matrix.translate(-0.02, -0.001, -0.001);
   pupil2.matrix.scale(0.03, 0.055, 0.05);
+  pupil2.textureNum = g_normalOn ? -3 : -2;
   pupil2.renderFast();
 
   var body = new Cube();
   //minecraft diamond color
-  body.textureNum = 3;
   body.matrix = bodyMatrix;
   body.matrix.translate(0, -0.8, -0.1);
   var leftArmMatrix = new Matrix4(body.matrix);
   var rightArmMatrix = new Matrix4(body.matrix);
   var bottomMatrix = new Matrix4(body.matrix);
   body.matrix.scale(0.5, 0.8, 0.7);
+  body.textureNum = g_normalOn ? -3 : 3;
   body.renderFast();
 
   var leftArm = new Cube();
-  leftArm.textureNum = 3;
   leftArm.matrix = leftArmMatrix;
   leftArm.matrix.translate(0.5, 0.55, -0.25);
   leftArm.matrix.rotate(-90, 0, 1, 0);
   var leftHandMatrix = new Matrix4(leftArm.matrix);
   leftArm.matrix.scale(0.25, 0.25, 0.5);
+  leftArm.textureNum = g_normalOn ? -3 : 3;
   leftArm.renderFast();
 
   var leftHand = new Cube();
@@ -1259,15 +1314,16 @@ function drawSteve(x, y, z){
   leftHand.matrix = leftHandMatrix;
   leftHand.matrix.translate(0, -0.6, 0);
   leftHand.matrix.scale(0.25, 0.6, 0.5);
+  leftHand.textureNum = g_normalOn ? -3 : -2;
   leftHand.renderFast();
 
   var rightArm = new Cube();
-  rightArm.textureNum = 3;
   rightArm.matrix = rightArmMatrix;
   rightArm.matrix.translate(0, 0.55, 0.95);
   rightArm.matrix.rotate(90, 0, 1, 0);
   var rightHandMatrix = new Matrix4(rightArm.matrix);
   rightArm.matrix.scale(0.25, 0.25, 0.5);
+  rightArm.textureNum = g_normalOn ? -3 : 3;
   rightArm.renderFast();
 
   var rightHand = new Cube();
@@ -1275,6 +1331,7 @@ function drawSteve(x, y, z){
   rightHand.matrix = rightHandMatrix;
   rightHand.matrix.translate(0, -0.6, 0);
   rightHand.matrix.scale(0.25, 0.6, 0.5);
+  rightHand.textureNum = g_normalOn ? -3 : -2;  
   rightHand.renderFast();
 
   var pants = new Cube();
@@ -1285,6 +1342,7 @@ function drawSteve(x, y, z){
   var leftLegMatrix = new Matrix4(pants.matrix);
   var rightLegMatrix = new Matrix4(pants.matrix);
   pants.matrix.scale(0.5, 0.3, 0.7);
+  pants.textureNum = g_normalOn ? -3 : -2;
   pants.renderFast();
   
   var leftLeg = new Cube();
@@ -1293,6 +1351,7 @@ function drawSteve(x, y, z){
   leftLeg.matrix.translate(0, -0.80, 0);
   var leftShoeMatrix = new Matrix4(leftLeg.matrix);
   leftLeg.matrix.scale(0.5, 0.8, 0.3);
+  leftLeg.textureNum = g_normalOn ? -3 : -2;
   leftLeg.renderFast();
 
   var rightLeg = new Cube();
@@ -1301,6 +1360,7 @@ function drawSteve(x, y, z){
   rightLeg.matrix.translate(0, -0.80, 0.4);
   var rightShoeMatrix = new Matrix4(rightLeg.matrix);
   rightLeg.matrix.scale(0.5, 0.8, 0.3);
+  rightLeg.textureNum = g_normalOn ? -3 : -2;
   rightLeg.renderFast();
 
   var leftShoe = new Cube();
@@ -1308,6 +1368,7 @@ function drawSteve(x, y, z){
   leftShoe.matrix = leftShoeMatrix;
   leftShoe.matrix.translate(0, -0.2, 0);
   leftShoe.matrix.scale(0.5, 0.2, 0.3);
+  leftShoe.textureNum = g_normalOn ? -3 : -2;
   leftShoe.renderFast();
 
   var rightShoe = new Cube();
@@ -1315,6 +1376,7 @@ function drawSteve(x, y, z){
   rightShoe.matrix = rightShoeMatrix;
   rightShoe.matrix.translate(0, -0.2, 0);
   rightShoe.matrix.scale(0.5, 0.2, 0.3);
+  rightShoe.textureNum = g_normalOn ? -3 : -2;
   rightShoe.renderFast();
 
 
@@ -1353,20 +1415,26 @@ function renderScene(){
 gl.uniform3f(u_spotlightDir, 0, -1, 0); // pointing straight down
 gl.uniform1f(u_spotlightCutoff, Math.cos(Math.PI / 9));
 
+
+  let lightColor = [
+    magentaIntensity, 
+    0.0,             
+    magentaIntensity 
+  ];
+  gl.uniform3f(u_lightColor, lightColor[0], lightColor[1], lightColor[2]);
+
   var light = new Cube();
-  light.color = [2.0, 2.0, 0.0, 1.0]; 
+  light.color = [2.0, 0.0, 2.0, 1.0]; 
   light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]); 
-  light.matrix.scale(-0.5, -0.5, -0.5); 
-  light.flipNormals();
-  light.textureNum = -2;
+  light.matrix.scale(0.5, 0.5, 0.5); 
+  light.textureNum = g_normalOn? -3: -2;
   light.renderFast();
 
   var cornerSpotlight = new Cube();
   cornerSpotlight.color = [1.0, 0.0, 0.0, 1.0]; // Red color
   cornerSpotlight.matrix.translate(25, 9, 2); // Position the spotlight at the origin
   cornerSpotlight.matrix.scale(1, 1, 1); 
-  cornerSpotlight.textureNum = -2;
-  light.flipNormals();
+  cornerSpotlight.textureNum = g_normalOn ? -3 : -2;
   cornerSpotlight.renderFast();
 
   
@@ -1374,16 +1442,12 @@ gl.uniform1f(u_spotlightCutoff, Math.cos(Math.PI / 9));
   floor.color = [0.0, 1.0, 0.0, 1.0]; // Green color
   floor.matrix.translate(-2.0, -0.5, -2.0); // Position the floor below the animal
   floor.matrix.scale(50.0, 0.05, 50.0); // Scale to make it wide and flat
-  floor.textureNum = -2;
+  floor.textureNum = g_normalOn ? -3 : -2; 
   floor.renderFast();
 
   var sky = new Cube();
   sky.color = [0.0, 0.0, 0.0, 1.0]; // Blue color
-  sky.textureNum = 0;
-  if(g_normalOn){
-    sky.textureNum = -3;
-    sky.flipNormals();
-  }
+  sky.textureNum = g_normalOn ? -3 : 0; 
   sky.matrix.translate(-2.0, -1, -2.0); // Position the sky above the animal
   sky.matrix.scale(50.0, 50.0, 50.0); // Scale to make it wide and flat
   sky.renderFast();
@@ -1392,10 +1456,7 @@ gl.uniform1f(u_spotlightCutoff, Math.cos(Math.PI / 9));
   sphere.color = [0.0, 1.0, 1.0, 1.0]; 
   sphere.matrix.translate(10, 3, 7); 
   sphere.matrix.scale(1, 1, 1);
-  sphere.textureNum = 0;
-  if(g_normalOn){
-    sphere.textureNum = -3;
-  }
+  sphere.textureNum = g_normalOn ? -3 : 0;
   sphere.render();
   
   // Draw the map
