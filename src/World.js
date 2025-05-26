@@ -31,6 +31,7 @@ var FSHADER_SOURCE = `
   uniform sampler2D u_Sampler3;
   uniform int u_whichTexture;
   uniform vec3 u_lightPos;
+  uniform vec3 u_cameraPos;
   varying vec4 v_VertPos;
   void main() {
     
@@ -66,8 +67,18 @@ var FSHADER_SOURCE = `
     vec3 L = normalize(lightVector);
     vec3 N = normalize(v_Normal);
     float nDotL = max(dot(N, L), 0.0);
-    gl_FragColor = gl_FragColor * nDotL;
-    gl_FragColor.a = 1.0;
+
+    //reflection
+    vec3 R = reflect(-L, N);
+
+    //eye
+    vec3 E = normalize(u_cameraPos - vec3(v_VertPos));
+
+    float specilar = pow(max(dot(R, E), 0.0), 10.0);
+
+    vec3 diffuse = vec3(gl_FragColor) * nDotL;
+    vec3 ambient = vec3(gl_FragColor) * 0.3; 
+    gl_FragColor = vec4(diffuse + ambient, 1.0);
   }`
 
 
@@ -89,6 +100,7 @@ let u_Sampler2;
 let u_Sampler3;
 let u_whichTexture;
 let u_lightPos;
+let u_cameraPos;
 
 let g_lightAnimate = false;
 let g_globalAngle = 80;
@@ -361,6 +373,12 @@ function connectVariablesToGLSL(){
   if (!u_whichTexture) {
     console.log('Failed to get the storage location of u_whichTexture');
     return; 
+  }
+
+  u_cameraPos = gl.getUniformLocation(gl.program, 'u_cameraPos');
+  if (!u_cameraPos) {
+    console.log('Failed to get the storage location of u_cameraPos');
+    return;
   }
 
 
@@ -1242,10 +1260,11 @@ function renderScene(){
   gl.clear(gl.COLOR_BUFFER_BIT);
   
   gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+  gl.uniform3f(u_cameraPos, camera.eye.elements[0], camera.eye.elements[1], camera.eye.elements[2]);
   var light = new Cube();
   light.color = [2.0, 2.0, 0.0, 1.0]; 
   light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]); 
-  light.matrix.scale(0.5, 0.5, 0.5); 
+  light.matrix.scale(-0.5, -0.5, -0.5); 
   light.flipNormals();
   light.textureNum = -2;
   light.renderFast();
@@ -1254,7 +1273,7 @@ function renderScene(){
   var floor = new Cube();
   floor.color = [0.0, 1.0, 0.0, 1.0]; // Green color
   floor.matrix.translate(-2.0, -0.5, -2.0); // Position the floor below the animal
-  floor.matrix.scale(50.0, 0, 50.0); // Scale to make it wide and flat
+  floor.matrix.scale(50.0, 0.05, 50.0); // Scale to make it wide and flat
   floor.textureNum = -2;
   floor.renderFast();
 
@@ -1273,7 +1292,7 @@ function renderScene(){
   sphere.color = [0.0, 1.0, 1.0, 1.0]; 
   sphere.matrix.translate(10, 3, 7); 
   sphere.matrix.scale(1, 1, 1);
-  sphere.textureNum = -2;
+  sphere.textureNum = 0;
   if(g_normalOn){
     sphere.textureNum = -3;
   }
